@@ -37,6 +37,8 @@ char USAGE[] = "Usage: [options] " \
                "  --daemon|-D        become a daemon (background process)\n" \
                "  --cert CERT        SSL certificate file\n" \
                "  --key KEY          SSL key file (if separate from cert)\n" \
+               "  --run-once         Exit after first connection\n" \
+               "  --run-single       Accept only one connection at a time\n" \
                "  --ssl-only         disallow non-encrypted connections";
 
 #define usage(fmt, args...) \
@@ -274,7 +276,7 @@ void proxy_handler(ws_ctx_t *ws_ctx) {
 int main(int argc, char *argv[])
 {
     int fd, c, option_index = 0;
-    static int ssl_only = 0, daemon = 0, run_once = 0, verbose = 0;
+    static int ssl_only = 0, daemon = 0, run_once = 0, run_single = 0, verbose = 0;
     char *found;
     static struct option long_options[] = {
         {"verbose",    no_argument,       &verbose,    'v'},
@@ -282,6 +284,7 @@ int main(int argc, char *argv[])
         {"daemon",     no_argument,       &daemon,     'D'},
         /* ---- */
         {"run-once",   no_argument,       0,           'r'},
+        {"run-single", no_argument,       0,           's'},
         {"cert",       required_argument, 0,           'c'},
         {"key",        required_argument, 0,           'k'},
         {0, 0, 0, 0}
@@ -295,7 +298,7 @@ int main(int argc, char *argv[])
     settings.key = "";
 
     while (1) {
-        c = getopt_long (argc, argv, "vDrc:k:",
+        c = getopt_long (argc, argv, "vDrsc:k:",
                          long_options, &option_index);
 
         /* Detect the end */
@@ -314,6 +317,9 @@ int main(int argc, char *argv[])
                 break;
             case 'r':
                 run_once = 1;
+                break;
+            case 's':
+                run_single = 1;
                 break;
             case 'c':
                 settings.cert = realpath(optarg, NULL);
@@ -335,6 +341,7 @@ int main(int argc, char *argv[])
     settings.ssl_only     = ssl_only;
     settings.daemon       = daemon;
     settings.run_once     = run_once;
+    settings.run_single   = run_single;
 
     if ((argc-optind) != 2) {
         usage("Invalid number of arguments\n");
@@ -376,6 +383,7 @@ int main(int argc, char *argv[])
     //printf("  ssl_only: %d\n",  settings.ssl_only);
     //printf("  daemon: %d\n",    settings.daemon);
     //printf("  run_once: %d\n",  settings.run_once);
+    //printf("  run_single: %d\n",  settings.run_single);
     //printf("  cert: %s\n",      settings.cert);
     //printf("  key: %s\n",       settings.key);
 

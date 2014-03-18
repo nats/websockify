@@ -724,7 +724,7 @@ void start_server() {
     if (bind(lsock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         fatal("ERROR on binding listener socket");
     }
-    listen(lsock,100);
+    listen(lsock, settings.run_single ? 1 : 100);
 
     signal(SIGPIPE, signal_handler);  // catch pipe
 
@@ -782,6 +782,10 @@ void start_server() {
             break;   // Child process exits
         } else {         // parent process
             settings.handler_id += 1;
+            if (settings.run_single) {
+                int status = 0;
+                waitpid(pid, &status, 0);
+            }
         }
     }
     if (pid == 0) {
